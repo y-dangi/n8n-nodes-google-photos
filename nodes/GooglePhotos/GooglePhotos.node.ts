@@ -433,6 +433,34 @@ export class GooglePhotos implements INodeType {
         description: 'ID of the media item to use as the album cover photo',
       },
 
+      // ── Picker: Create Session Options ────────────────────────────────────
+      {
+        displayName: 'Max Item Count',
+        name: 'maxItemCount',
+        type: 'number',
+        typeOptions: { minValue: 1, maxValue: 500 },
+        default: 100,
+        displayOptions: {
+          show: { resource: ['picker'], operation: ['createSession'] },
+        },
+        description: 'Maximum number of items the user can select in this picker session (1–500)',
+      },
+      {
+        displayName: 'Media Type Filter',
+        name: 'pickerMediaTypeFilter',
+        type: 'options',
+        options: [
+          { name: 'All Media',   value: 'ALL_MEDIA' },
+          { name: 'Photos Only', value: 'PHOTO'     },
+          { name: 'Videos Only', value: 'VIDEO'     },
+        ],
+        default: 'ALL_MEDIA',
+        displayOptions: {
+          show: { resource: ['picker'], operation: ['createSession'] },
+        },
+        description: 'Filter the types of media items available for selection in the Picker UI',
+      },
+
       // ── Picker: Session ID ─────────────────────────────────────────────────
       {
         displayName: 'Session ID',
@@ -587,11 +615,20 @@ export class GooglePhotos implements INodeType {
             const albumId = this.getNodeParameter('albumId', i) as string;
             const ids     = (this.getNodeParameter('mediaItemIds', i) as string)
               .split(',').map(s => s.trim()).filter(Boolean);
-            result = await apiRequest.call(
-              this, 'POST',
-              `${LIBRARY}/albums/${encodeURIComponent(albumId)}:batchAddMediaItems`,
-              { mediaItemIds: ids },
-            );
+
+            // Google API allows max 50 items per call — chunk automatically
+            const chunkSize = 50;
+            const responses: IDataObject[] = [];
+            for (let c = 0; c < ids.length; c += chunkSize) {
+              const chunk = ids.slice(c, c + chunkSize);
+              const batchRes = await apiRequest.call(
+                this, 'POST',
+                `${LIBRARY}/albums/${encodeURIComponent(albumId)}:batchAddMediaItems`,
+                { mediaItemIds: chunk },
+              );
+              responses.push(batchRes);
+            }
+            result = responses.length === 1 ? responses[0] : responses;
 
           } else if (operation === 'addEnrichment') {
             const albumId       = this.getNodeParameter('albumId',       i) as string;
@@ -637,9 +674,25 @@ export class GooglePhotos implements INodeType {
         } else if (resource === 'picker') {
 
           if (operation === 'createSession') {
-            // POST with an empty body to create a new picker session.
-            // The response contains pickerUri (user opens in browser) and sessionId.
-            result = await apiRequest.call(this, 'POST', `${PICKER}/sessions`, {});
+            const maxItemCount = this.getNodeParameter('maxItemCount', i, 100) as number;
+            const mediaType    = this.getNodeParameter('pickerMediaTypeFilter', i, 'ALL_MEDIA') as string;
+
+            const pickingConfig: IDataObject = {};
+            if (maxItemCount > 0) {
+              pickingConfig.maxItemCount = maxItemCount;
+            }
+            if (mediaType === 'PHOTO') {
+              pickingConfig.mimeTypeFilter = ['IMAGE_ALL'];
+            } else if (mediaType === 'VIDEO') {
+              pickingConfig.mimeTypeFilter = ['VIDEO_ALL'];
+            }
+
+            const body: IDataObject = {};
+            if (Object.keys(pickingConfig).length > 0) {
+              body.pickingConfig = pickingConfig;
+            }
+
+            result = await apiRequest.call(this, 'POST', `${PICKER}/sessions`, body);
 
           } else if (operation === 'getSession') {
             const sessionId = this.getNodeParameter('sessionId', i) as string;

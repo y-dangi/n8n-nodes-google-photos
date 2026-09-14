@@ -33,14 +33,16 @@ Full user-library access — the user selects which photos to share.
 
 | Operation | Description |
 |---|---|
-| **Create Session** | Returns a `pickerUri` for the user to open and choose photos |
+| **Create Session** | Returns a `pickerUri` for the user to open and choose photos (supports `maxItemCount` & `mediaTypeFilter`) |
 | **Get Session** | Poll the session — when `mediaItemsSet` is `true`, the user is done |
 | **List Session Items** | Retrieve the media items selected by the user |
 | **Delete Session** | Delete a completed or abandoned picker session to clean up resources |
 
-> ℹ️ **Picker Session Notes:**
+> ℹ️ **Picker & Library API Notes:**
 > - `pickerUri` expires over time and stops working once the user taps **Done**.
 > - Google recommends calling **Delete Session** after retrieving media items (or when abandoned).
+> - **Automatic Batching**: Adding media items to an album automatically splits item IDs into batches of 50 to respect Google's batch limits.
+> - **60-Minute Expiry**: `baseUrl` property on media item objects expires after 60 minutes. Process or download binary data within your workflow immediately.
 > - If `Create Session` returns a 403 or insufficient scope error, reconnect your Google OAuth2 API credential in n8n to grant the `photospicker.mediaitems.readonly` scope. (Existing credential metadata cannot verify if the scope was accepted during initial auth).
 
 ---
