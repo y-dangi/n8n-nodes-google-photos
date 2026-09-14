@@ -20,7 +20,7 @@ const CRED    = 'googleOAuth2Api';
  */
 async function apiRequest(
   this: IExecuteFunctions,
-  method: 'GET' | 'POST' | 'PATCH',
+  method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
   url: string,
   body?: IDataObject,
   qs?: IDataObject,
@@ -190,8 +190,15 @@ export class GooglePhotos implements INodeType {
             name: 'Create Session',
             value: 'createSession',
             description:
-              'Start a Picker session. Returns a pickerUri the user opens in their browser to choose photos from their full Google Photos library.',
+              'Start a Picker session. Returns a pickerUri for the user to select photos from their full Google Photos library. Note: pickerUri expires and stops working once the user taps Done.',
             action: 'Create a picker session',
+          },
+          {
+            name: 'Delete Session',
+            value: 'deleteSession',
+            description:
+              'Delete a picker session. Google recommends deleting completed or abandoned sessions to clean up resources.',
+            action: 'Delete a picker session',
           },
           {
             name: 'Get Session',
@@ -204,7 +211,7 @@ export class GooglePhotos implements INodeType {
             name: 'List Session Items',
             value: 'listSessionItems',
             description:
-              'List the media items the user selected in a completed picker session',
+              'List the media items selected by the user in a completed picker session',
             action: 'List picker session items',
           },
         ],
@@ -434,7 +441,7 @@ export class GooglePhotos implements INodeType {
         required: true,
         default: '',
         displayOptions: {
-          show: { resource: ['picker'], operation: ['getSession', 'listSessionItems'] },
+          show: { resource: ['picker'], operation: ['getSession', 'listSessionItems', 'deleteSession'] },
         },
         description: 'The session ID returned by the Create Session operation',
       },
@@ -638,6 +645,10 @@ export class GooglePhotos implements INodeType {
             const sessionId = this.getNodeParameter('sessionId', i) as string;
             result = await apiRequest.call(this, 'GET', `${PICKER}/sessions/${encodeURIComponent(sessionId)}`);
 
+          } else if (operation === 'deleteSession') {
+            const sessionId = this.getNodeParameter('sessionId', i) as string;
+            result = await apiRequest.call(this, 'DELETE', `${PICKER}/sessions/${encodeURIComponent(sessionId)}`);
+
           } else if (operation === 'listSessionItems') {
             const sessionId = this.getNodeParameter('sessionId', i) as string;
             const returnAll = this.getNodeParameter('returnAll', i)     as boolean;
@@ -663,16 +674,24 @@ export class GooglePhotos implements INodeType {
         }
 
       } catch (error) {
+        let errMsg = error instanceof Error ? error.message : String(error);
+
+        // Help user identify scope issues on Picker API
+        const resource = (this.getNodeParameter('resource', i, '') as string);
+        if (resource === 'picker' && (errMsg.includes('403') || errMsg.toLowerCase().includes('permission') || errMsg.toLowerCase().includes('scope'))) {
+          errMsg += ' — Note: If this is an authorization error, reconnect your Google OAuth2 API credential in n8n and ensure it includes the scope "https://www.googleapis.com/auth/photospicker.mediaitems.readonly". Existing credential metadata cannot confirm whether that scope was granted.';
+        }
+
         if (this.continueOnFail()) {
           output.push({
-            json: { error: error instanceof Error ? error.message : String(error) },
+            json: { error: errMsg },
             pairedItem: { item: i },
           });
         } else {
           if (error instanceof NodeOperationError) throw error;
           throw new NodeOperationError(
             this.getNode(),
-            error instanceof Error ? error : new Error(String(error)),
+            new Error(errMsg),
             { itemIndex: i },
           );
         }

@@ -33,9 +33,15 @@ Full user-library access — the user selects which photos to share.
 
 | Operation | Description |
 |---|---|
-| **Create Session** | Returns a `pickerUri` the user opens to select photos from their full library |
+| **Create Session** | Returns a `pickerUri` for the user to open and choose photos |
 | **Get Session** | Poll the session — when `mediaItemsSet` is `true`, the user is done |
-| **List Session Items** | Retrieve the media items the user selected |
+| **List Session Items** | Retrieve the media items selected by the user |
+| **Delete Session** | Delete a completed or abandoned picker session to clean up resources |
+
+> ℹ️ **Picker Session Notes:**
+> - `pickerUri` expires over time and stops working once the user taps **Done**.
+> - Google recommends calling **Delete Session** after retrieving media items (or when abandoned).
+> - If `Create Session` returns a 403 or insufficient scope error, reconnect your Google OAuth2 API credential in n8n to grant the `photospicker.mediaitems.readonly` scope. (Existing credential metadata cannot verify if the scope was accepted during initial auth).
 
 ---
 
@@ -145,6 +151,8 @@ Use a Wait node between steps 1 and 3 — the user needs time to make their sele
    → Poll until `mediaItemsSet` is `true`
 4. **Google Photos** — Resource: `Picker`, Operation: `List Session Items`, Session ID: `{{ $json.id }}`
    → Returns the selected media items
+5. **Google Photos** — Resource: `Picker`, Operation: `Delete Session`, Session ID: `{{ $json.id }}`
+   → Clean up session resources
 
 ---
 
