@@ -1,12 +1,17 @@
 {
   "name": "n8n-nodes-google-photos",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "n8n community node for Google Photos — direct Library API and Picker API integration",
   "license": "MIT",
-  "keywords": ["n8n-community-node-package", "google-photos"],
+  "keywords": [
+    "n8n-community-node-package",
+    "google-photos"
+  ],
   "main": "dist/nodes/GooglePhotos/GooglePhotos.node.js",
   "types": "dist/nodes/GooglePhotos/GooglePhotos.node.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "prepublishOnly": "npm run build",
@@ -14,8 +19,22 @@
     "lint": "eslint nodes --ext .ts",
     "test": "vitest run"
   },
-  "n8n": {"n8nNodesApiVersion": 1, "nodes": ["dist/nodes/GooglePhotos/GooglePhotos.node.js"]},
-  "engines": {"node": ">=20.0.0"},
-  "dependencies": {"n8n-workflow": "^1.120.0"},
-  "devDependencies": {"@types/node": "^22.0.0", "eslint": "^9.0.0", "typescript": "^5.7.0", "vitest": "^3.0.0"}
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "nodes": [
+      "dist/nodes/GooglePhotos/GooglePhotos.node.js"
+    ]
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "n8n-workflow": "^1.120.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
 }
