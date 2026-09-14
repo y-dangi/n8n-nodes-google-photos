@@ -1,0 +1,4 @@
+{
+  "compilerOptions": {"strict": true, "target": "ES2022", "module": "commonjs", "moduleResolution": "node", "esModuleInterop": true, "skipLibCheck": true, "declaration": true, "outDir": "dist", "rootDir": "."},
+  "include": ["credentials/**/*.ts", "nodes/**/*.ts", "test/**/*.ts"]
+}
