@@ -100,12 +100,20 @@ Restart n8n after installation.
 ### 2. Configure Credentials in n8n
 
 1. In n8n, open any workflow and add a **Google Photos** node
-2. Click **Create New Credential** → **Google Photos OAuth2**
+2. Click **Create New Credential** → select **Google OAuth2 API**
 3. Enter your **Client ID** and **Client Secret**
-4. Click **Connect** — a Google OAuth consent window will open
-5. Sign in and grant the requested permissions
-6. You're connected ✅
+4. In the **Scope** field, paste all three scopes (space-separated):
+   ```
+   https://www.googleapis.com/auth/photoslibrary.appendonly https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata https://www.googleapis.com/auth/photospicker.mediaitems.readonly
+   ```
+5. Click **Connect** — a Google OAuth consent window will open
+6. Sign in and grant the requested permissions
+7. You're connected ✅
 
+> **Why these scopes?** Google removed broad library access on March 31 2025.
+> - `photoslibrary.appendonly` — upload photos and create albums
+> - `photoslibrary.readonly.appcreateddata` — read back content this app uploaded
+> - `photospicker.mediaitems.readonly` — Picker API: full library access via user selection
 ---
 
 ## Usage Examples

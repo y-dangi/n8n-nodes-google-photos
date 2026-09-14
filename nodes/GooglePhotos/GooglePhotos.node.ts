@@ -11,7 +11,7 @@ import { NodeOperationError } from 'n8n-workflow';
 
 const LIBRARY = 'https://photoslibrary.googleapis.com/v1';
 const PICKER  = 'https://photospicker.googleapis.com/v1';
-const CRED    = 'googlePhotosOAuth2Api';
+const CRED    = 'googleOAuth2Api';
 
 // ─── HTTP helpers ─────────────────────────────────────────────────────────────
 
@@ -95,7 +95,16 @@ export class GooglePhotos implements INodeType {
     defaults: { name: 'Google Photos' },
     inputs: ['main'],
     outputs: ['main'],
-    credentials: [{ name: CRED, required: true }],
+    credentials: [{
+      name: CRED,
+      required: true,
+      // Use n8n's built-in Google OAuth2 API credential.
+      // When creating the credential, paste these scopes into the Scope field
+      // (space-separated):
+      //   https://www.googleapis.com/auth/photoslibrary.appendonly
+      //   https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata
+      //   https://www.googleapis.com/auth/photospicker.mediaitems.readonly
+    }],
     properties: [
 
       // ── Resource ───────────────────────────────────────────────────────────
