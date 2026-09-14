@@ -171,17 +171,40 @@ npm link n8n-nodes-google-photos
 
 Restart n8n and the node will appear under **Google Photos**.
 
+### Publishing to npm
+
+To publish or release a new version to the npm registry:
+
+1. **Build the project**:
+   ```bash
+   npm run build
+   ```
+
+2. **Log in to npm**:
+   ```bash
+   npm login
+   ```
+
+3. **Publish package**:
+   ```bash
+   npm publish --access public
+   ```
+
+4. **Updating versions**:
+   ```bash
+   npm version patch   # Bump version (0.1.0 -> 0.1.1)
+   npm publish
+   ```
+
 ---
 
 ## Project Structure
 
 ```
-credentials/
-  GooglePhotosOAuth2Api.credentials.ts  ← OAuth2 credential definition
 nodes/
   GooglePhotos/
-    GooglePhotos.node.ts                ← Main node (all operations)
-    googlePhotos.svg                    ← Node icon
+    GooglePhotos.node.ts   ← Main node (all operations)
+    googlePhotos.svg       ← Node icon
 ```
 
 ---
