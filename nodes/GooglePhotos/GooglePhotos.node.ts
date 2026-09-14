@@ -29,7 +29,7 @@ async function apiRequest(
   if (body && Object.keys(body).length) opts.body = body;
   if (qs  && Object.keys(qs).length)   opts.qs   = qs;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return ((await (this.helpers.requestWithAuthentication as any)(CRED, opts))) as IDataObject;
+  return ((await (this.helpers.requestWithAuthentication as any).call(this, CRED, opts))) as IDataObject;
 }
 
 /**
@@ -569,7 +569,7 @@ export class GooglePhotos implements INodeType {
 
             // Step 1 — raw binary upload → uploadToken (plain-text response)
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const uploadToken = await (this.helpers.requestWithAuthentication as any)(CRED, {
+            const uploadToken = await (this.helpers.requestWithAuthentication as any).call(this, CRED, {
               method: 'POST',
               url: `${LIBRARY}/uploads`,
               headers: {
@@ -726,8 +726,8 @@ export class GooglePhotos implements INodeType {
           output.push({ json: result, pairedItem: { item: i } });
         }
 
-      } catch (error) {
-        let errMsg = error instanceof Error ? error.message : String(error);
+      } catch (error: any) {
+        let errMsg = error?.response?.data?.error?.message || (error instanceof Error ? error.message : String(error));
 
         // Help user identify scope issues on Picker API
         const resource = (this.getNodeParameter('resource', i, '') as string);
